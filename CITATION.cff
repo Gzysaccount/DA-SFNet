@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying DA-SFNet paper."
+title: "DA-SFNet: A Direction-Aware Spatial-Frequency Collaborative Enhancement Network for Architectural Object Detection in CAD Drawings"
+type: software
+version: 1.0.0
+date-released: 2026-09-17
+authors:
+  - family-names: Guo
+    given-names: Ziyang
+    orcid: "https://orcid.org/0009-0001-9766-0616"
+    affiliation: "University of Shanghai for Science and Technology"
+  - family-names: Wang
+    given-names: Wenju
+    orcid: "https://orcid.org/0000-0002-8549-4710"
+    affiliation: "University of Shanghai for Science and Technology"
+  - family-names: Ouyang
+    given-names: Xiong
+    orcid: "https://orcid.org/0009-0006-9917-1062"
+    affiliation: "University of Shanghai for Science and Technology"
+  - family-names: Pan
+    given-names: Yuting
+    orcid: "https://orcid.org/0009-0008-7955-6517"
+    affiliation: "University of Shanghai for Science and Technology"
+license: AGPL-3.0-only
+repository-code: "https://github.com/USERNAME/DA-SFNet"

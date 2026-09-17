@@ -1,0 +1,13 @@
+DA-SFNet research code package
+
+This repository includes a modified copy of the Ultralytics codebase. The
+Ultralytics-derived code remains subject to the GNU Affero General Public
+License v3.0 included in LICENSE.
+
+DA-SFNet-specific modifications include the DA_FFT and MST_LADA modules, model
+configuration, experiment scripts, released checkpoint, and demonstration UI.
+
+The FloorPlanCAD dataset is third-party research data and is not relicensed by
+this NOTICE. Users and redistributors are responsible for complying with its
+original terms and citation requirements.
+
