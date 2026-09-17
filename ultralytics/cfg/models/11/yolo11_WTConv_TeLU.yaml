@@ -1,0 +1,61 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLO11 object detection model with P3-P5 outputs
+# Enhanced with WTConv + TeLU + ELA Attention
+
+# Parameters
+nc: 80 # number of classes
+scales: # model compound scaling constants
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# YOLO11n backbone with WTConv + TeLU + ELA
+backbone:
+  # [from, repeats, module, args]
+  # Args format for ELA: [channels, kernel_size]
+  # Example: [-1, 1, ELA, [256, 7]] means channels=256, kernel=7x7
+  
+  - [-1, 1, Conv_TeLU, [64, 3, 2]]        # 0-P1/2
+  - [-1, 1, Conv_TeLU, [128, 3, 2]]      # 1-P2/4
+  - [-1, 2, C3k2_WT, [256, False, 0.25]] # 2
+  - [-1, 1, ELA, [256, 7]]              # 3 - ELA: 捕获P2阶段局部特征
+  - [-1, 1, Conv_TeLU, [256, 3, 2]]      # 4-P3/8
+  
+  - [-1, 2, C3k2_WT, [512, False, 0.25]] # 5
+  - [-1, 1, ELA, [512, 7]]               # 6 - ELA: 捕获P3阶段局部特征
+  - [-1, 1, Conv_TeLU, [512, 3, 2]]      # 7-P4/16
+  
+  - [-1, 2, C3k2_WT, [512, True]]         # 8
+  - [-1, 1, ELA, [512, 7]]               # 9 - ELA: 捕获P4阶段局部特征
+  - [-1, 1, Conv_TeLU, [1024, 3, 2]]    # 10-P5/32
+  
+  - [-1, 2, C3k2_WT, [1024, True]]       # 11
+  - [-1, 1, ELA, [1024, 7]]              # 12 - ELA: 捕获P5阶段局部特征
+  - [-1, 1, SPPF, [1024, 5]]            # 13
+  - [-1, 2, C2PSA, [1024]]               # 14
+
+# YOLO11n head with ELA
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 15
+  - [[-1, 8], 1, Concat, [1]]            # 16 - 融合 15 和 8
+  - [-1, 2, C3k2, [512, False]]           # 17
+  - [-1, 1, ELA, [512, 7]]               # 18 - 增强特征融合后的表示
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 19
+  - [[-1, 6], 1, Concat, [1]]            # 20 - 融合 19 和 6
+  - [-1, 2, C3k2, [256, False]]          # 21 - P3/8-small
+  - [-1, 1, ELA, [256, 7]]               # 22 - 增强小目标检测
+
+  - [-1, 1, Conv, [256, 3, 2]]           # 23
+  - [[-1, 17], 1, Concat, [1]]           # 24 - 融合 23 和 17
+  - [-1, 2, C3k2, [512, False]]          # 25 - P4/16-medium
+  - [-1, 1, ELA, [512, 7]]               # 26 - 增强中目标检测
+
+  - [-1, 1, Conv, [512, 3, 2]]           # 27
+  - [[-1, 14], 1, Concat, [1]]           # 28 - 融合 27 和 14
+  - [-1, 2, C3k2, [1024, True]]          # 29 - P5/32-large
+  - [-1, 1, ELA, [1024, 7]]              # 30 - 增强大目标检测
+
+  - [[21, 25, 29], 1, Detect, [nc]]      # 31 - Detect(P3, P4, P5)

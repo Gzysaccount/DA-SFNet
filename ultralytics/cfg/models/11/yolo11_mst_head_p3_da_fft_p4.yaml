@@ -1,0 +1,51 @@
+# Ultralytics YOLO, AGPL-3.0 license
+# Decoupled combination ablation: one head-P3 MST-LADA + one backbone-P4 DA-FFT.
+#
+# DA-FFT operates on the original P4 backbone feature. MST-LADA is applied only
+# after the top-down P3 fusion, so its output cannot alter the feature received
+# by DA-FFT. This isolates the suspected P3-backbone MST -> P4 DA-FFT conflict
+# in the earlier dual-MST + DA-FFT configuration.
+
+nc: 28
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]          # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]         # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]  # 2
+  - [-1, 1, Conv, [256, 3, 2]]         # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]  # 4-P3 backbone feature (unchanged)
+  - [-1, 1, Conv, [512, 3, 2]]         # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]         # 6-P4 backbone feature (unchanged by MST)
+  # [channels, window_size, num_groups, direction_angles, max_residual_scale, initial_residual_scale]
+  - [-1, 1, DA_FFT, [512, 16, 4, [0, 90], 0.05, 0.005]]  # 7-single P4 DA-FFT
+  - [-1, 1, Conv, [1024, 3, 2]]        # 8-P5/32
+  - [-1, 2, C3k2, [1024, True]]        # 9
+  - [-1, 1, SPPF, [1024, 5]]           # 10
+  - [-1, 2, C2PSA, [1024]]             # 11
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 12
+  - [[-1, 7], 1, Concat, [1]]                    # 13-cat enhanced backbone P4
+  - [-1, 2, C3k2, [512, False]]                  # 14
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 15
+  - [[-1, 4], 1, Concat, [1]]                    # 16-cat original backbone P3
+  - [-1, 2, C3k2, [256, False]]                  # 17-P3/8 small
+  - [-1, 1, MST_LADA, [256, 3, 8, 3, 0.025, 0.004, 0.06]]  # 18-head P3 MST only
+
+  - [-1, 1, Conv, [256, 3, 2]]                   # 19
+  - [[-1, 14], 1, Concat, [1]]                   # 20-cat head P4
+  - [-1, 2, C3k2, [512, False]]                  # 21-P4/16 medium
+
+  - [-1, 1, Conv, [512, 3, 2]]                   # 22
+  - [[-1, 11], 1, Concat, [1]]                   # 23-cat backbone P5
+  - [-1, 2, C3k2, [1024, True]]                  # 24-P5/32 large
+
+  - [[18, 21, 24], 1, Detect, [nc]]              # 25-Detect(P3, P4, P5)

@@ -1,0 +1,34 @@
+names:
+- single door
+- double door
+- sliding door
+- window
+- bay window
+- blind window
+- opening symbol
+- stair
+- gas stove
+- refrigerator
+- washing machine
+- sofa
+- bed
+- chair
+- table
+- bedside cupboard
+- TV cabinet
+- half-height cabinet
+- high cabinet
+- wardrobe
+- sink
+- bath
+- bath tub
+- squat toilet
+- urinal
+- toilet
+- elevator
+- escalator
+nc: 28
+path: data/FloorPlanCAD
+train: images/train
+val: images/val
+test: images/test

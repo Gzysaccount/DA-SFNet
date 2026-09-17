@@ -1,0 +1,6 @@
+configuration,mst_lada,da_fft,precision,recall,map50,map50_95,peak_f1,source
+Baseline,0,0,,,0.549,,0.52,paper Table 2
+MST-LADA,1,0,,,0.565,,0.54,paper Table 2
+DA-FFT,0,1,,,0.569,,0.53,paper Table 2
+DA-SFNet,1,1,0.499608,0.642901,0.618791,0.488343,0.53,paper Table 2 and held-out test log
+
